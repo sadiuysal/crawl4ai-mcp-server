@@ -42,14 +42,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Lowercase repository name for GHCR
-        run: echo "IMAGE_NAME_LOWER=${{ github.repository | tolower }}" >> $GITHUB_ENV
-
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
+          images: ghcr.io/${{ github.repository | tolower }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
