@@ -43,8 +43,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lowercase repository name for GHCR
-        run: |
-          echo "IMAGE_NAME_LOWER=${{ env.IMAGE_NAME | tolower }}" >> $GITHUB_ENV
+        run: echo "IMAGE_NAME_LOWER=${{ github.repository | tolower }}" >> $GITHUB_ENV
 
       - name: Extract metadata for Docker
         id: meta
