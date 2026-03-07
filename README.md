@@ -23,14 +23,42 @@ Choose between **Docker** (recommended) or **manual installation**:
 Docker eliminates all setup complexity and provides a consistent environment:
 
 #### Option A1: Use Pre-built Image (Fastest) ⚡
+
 ```bash
-# No setup required! Just pull and run the published image
+# Pull from GitHub Container Registry (recommended - auto-built for AMD64 and ARM64)
+docker pull ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
+
+# Or from Docker Hub
 docker pull uysalsadi/crawl4ai-mcp-server:latest
 
 # Test it works
 python test-config.py
 
 # Use directly in MCP configurations (see examples below)
+```
+
+#### Using GitHub Container Registry (ghcr.io)
+
+This repository uses GitHub Actions to automatically build and push multi-architecture Docker images (AMD64 + ARM64) to the GitHub Container Registry.
+
+**Image location:** `ghcr.io/uysalsadi/crawl4ai-mcp-server`
+
+**Available tags:**
+- `latest` - Latest build from main branch
+- `v1.0.0`, `v1.0.1`, etc. - Versioned releases
+- `1.0`, `1` - Major/minor version tags
+- `<sha>` - Commit SHA tag
+
+**Pull specific architecture:**
+```bash
+# Auto-selects your system architecture
+docker pull ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
+
+# Explicitly pull AMD64 (Intel/AMD)
+docker pull --platform linux/amd64 ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
+
+# Explicitly pull ARM64 (Apple Silicon, Raspberry Pi, ARM servers)
+docker pull --platform linux/arm64 ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
 ```
 
 #### Option A2: Build Yourself
@@ -286,13 +314,39 @@ Both Cursor and Claude Code can use the Dockerized MCP server:
 
 ```json
 // .mcp.json (project-scoped configuration)
+// Using GitHub Container Registry (ghcr.io) - recommended
 {
   "mcpServers": {
     "crawl4ai-mcp": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "--volume", "./crawls:/app/crawls",
+        "run", 
+        "--rm", 
+        "-i",
+        "--volume", 
+        "./crawls:/app/crawls",
+        "ghcr.io/uysalsadi/crawl4ai-mcp-server:latest"
+      ],
+      "env": {
+        "CRAWL4AI_MCP_LOG": "INFO"
+      }
+    }
+  }
+}
+```
+
+**Alternative: Docker Hub (ARM Only)**
+```json
+{
+  "mcpServers": {
+    "crawl4ai-mcp": {
+      "command": "docker",
+      "args": [
+        "run", 
+        "--rm", 
+        "-i",
+        "--volume", 
+        "./crawls:/app/crawls",
         "uysalsadi/crawl4ai-mcp-server:latest"
       ],
       "env": {
@@ -360,8 +414,33 @@ Add to `~/.claude/claude_desktop_config.json`:
     "crawl4ai-mcp": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i", 
-        "--volume", "/tmp/crawl4ai-crawls:/app/crawls",
+        "run", 
+        "--rm", 
+        "-i", 
+        "--volume", 
+        "/tmp/crawl4ai-crawls:/app/crawls",
+        "ghcr.io/uysalsadi/crawl4ai-mcp-server:latest"
+      ],
+      "env": {
+        "CRAWL4AI_MCP_LOG": "INFO"
+      }
+    }
+  }
+}
+```
+
+**Alternative: Docker Hub**
+```json
+{
+  "mcpServers": {
+    "crawl4ai-mcp": {
+      "command": "docker",
+      "args": [
+        "run", 
+        "--rm", 
+        "-i", 
+        "--volume", 
+        "/tmp/crawl4ai-crawls:/app/crawls",
         "uysalsadi/crawl4ai-mcp-server:latest"
       ],
       "env": {
@@ -384,8 +463,33 @@ Add to `~/.cursor/mcp.json`:
     "crawl4ai-mcp": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "--volume", "/tmp/crawl4ai-crawls:/app/crawls", 
+        "run", 
+        "--rm", 
+        "-i",
+        "--volume", 
+        "/tmp/crawl4ai-crawls:/app/crawls", 
+        "ghcr.io/uysalsadi/crawl4ai-mcp-server:latest"
+      ],
+      "env": {
+        "CRAWL4AI_MCP_LOG": "INFO"
+      }
+    }
+  }
+}
+```
+
+**Alternative: Docker Hub**
+```json
+{
+  "mcpServers": {
+    "crawl4ai-mcp": {
+      "command": "docker",
+      "args": [
+        "run", 
+        "--rm", 
+        "-i",
+        "--volume", 
+        "/tmp/crawl4ai-crawls:/app/crawls", 
         "uysalsadi/crawl4ai-mcp-server:latest"
       ],
       "env": {
@@ -408,8 +512,33 @@ Add to your project's `.mcp.json`:
     "crawl4ai-mcp": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "--volume", "./crawls:/app/crawls",
+        "run",
+        "--rm", 
+        "-i",
+        "--volume", 
+        "./crawls:/app/crawls",
+        "ghcr.io/uysalsadi/crawl4ai-mcp-server:latest"
+      ],
+      "env": {
+        "CRAWL4AI_MCP_LOG": "INFO"
+      }
+    }
+  }
+}
+```
+
+**Alternative: Docker Hub**
+```json
+{
+  "mcpServers": {
+    "crawl4ai-mcp": {
+      "command": "docker",
+      "args": [
+        "run", 
+        "--rm", 
+        "-i",
+        "--volume", 
+        "./crawls:/app/crawls",
         "uysalsadi/crawl4ai-mcp-server:latest"
       ],
       "env": {
@@ -530,6 +659,48 @@ await session.call_tool("scrape", {
                        │  Safety Guards   │
                        │ (URL validation) │
                        └──────────────────┘
+```
+
+## ⚙️ GitHub Actions - Auto-Build
+
+This repository uses GitHub Actions to automatically build and push multi-architecture Docker images.
+
+### What It Builds
+
+- **linux/amd64** - For Intel and AMD processors (most common)
+- **linux/arm64** - For Apple Silicon (M1/M2/M3), Raspberry Pi, and ARM servers
+
+### When It Builds
+
+- On every push to `main` or `master` branch
+- On every pull request to `main` or `master`
+- On every new tag starting with `v` (e.g., `v1.0.0`)
+
+### How It Works
+
+The workflow (located at `.github/workflows/docker-build.yml`):
+1. Checks out the code
+2. Sets up QEMU for ARM64 emulation
+3. Sets up Docker Buildx
+4. Logs in to GitHub Container Registry (ghcr.io)
+5. Builds and pushes multi-arch images with caching
+
+### Image Location
+
+Images are pushed to: `ghcr.io/uysalsadi/crawl4ai-mcp-server`
+
+### Usage
+
+```bash
+# Pull latest (auto-selects architecture)
+docker pull ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
+
+# Pull specific version
+docker pull ghcr.io/uysalsadi/crawl4ai-mcp-server:v1.0.0
+
+# Pull specific architecture
+docker pull --platform linux/amd64 ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
+docker pull --platform linux/arm64 ghcr.io/uysalsadi/crawl4ai-mcp-server:latest
 ```
 
 ## 📦 Publishing to Docker Hub
